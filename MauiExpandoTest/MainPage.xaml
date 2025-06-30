@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="MauiExpandoTest.MainPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:MauiExpandoTest"
+    x:DataType="local:MainPage">
+
+    <Grid ColumnDefinitions="2*,*">
+        <ScrollView>
+            <VerticalStackLayout Padding="30,30,30,400" Spacing="25">
+                <Image
+                    Aspect="AspectFit"
+                    HeightRequest="185"
+                    SemanticProperties.Description="dot net bot in a hovercraft number nine"
+                    Source="dotnet_bot.png" />
+
+                <Label
+                    SemanticProperties.HeadingLevel="Level1"
+                    Style="{StaticResource Headline}"
+                    Text="{Binding Properties[Hello]}" />
+
+                <Label
+                    SemanticProperties.Description="Welcome to dot net Multi platform App U I"
+                    SemanticProperties.HeadingLevel="Level2"
+                    Style="{StaticResource SubHeadline}"
+                    Text="{Binding Properties[Welcome]}" />
+
+                <Button
+                    x:Name="CounterBtn"
+                    Clicked="OnCounterClicked"
+                    HorizontalOptions="Fill"
+                    SemanticProperties.Hint="Counts the number of times you click"
+                    Text="{Binding Properties[Count], StringFormat='Clicked {0} times!'}" />
+
+                <!--#region for MyObject03 and above-->
+                <Label Text="{Binding Properties[Extra:Nested:Value]}" />
+                <!--#endregion-->
+
+                <!--#region for MyObject04 and above-->
+                <Slider Maximum="100" Value="{Binding Properties[Extra:Nested:NumberValue], Mode=TwoWay}" />
+                <local:NumericEntry Value="{Binding Properties[Extra:Nested:NumberValue], Mode=TwoWay}" />
+                <CheckBox IsChecked="{Binding Properties[Extra:Nested:BoolValue], Mode=TwoWay}" />
+                <DatePicker Date="{Binding Properties[Extra:Nested:DateValue], Mode=TwoWay}" />
+                <TimePicker Time="{Binding Properties[Extra:Nested:TimeValue], Mode=TwoWay}" />
+                <!--#endregion-->
+
+                <!--#region for MyObject05 and above-->
+                <!--
+				<Label Text="{Binding Properties[People].Count}" />
+				-->
+
+                <CollectionView ItemsSource="{Binding Properties[People]}" SelectionMode="Single">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="local:MyObject05WithArray">
+                            <Grid Padding="10">
+                                <Border Padding="10">
+                                    <VerticalStackLayout Spacing="10">
+                                        <local:TextEntry Value="{Binding [Name], Mode=TwoWay}" />
+                                        <local:NumericEntry Value="{Binding [Age], Mode=TwoWay}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+                <!--#endregion-->
+
+                <!--
+            <Entry Text="{Binding Key, Mode=TwoWay}" />
+
+            <Entry x:Name="ValueEdit" IsEnabled="{Binding Key.Length}" />
+                -->
+
+            </VerticalStackLayout>
+        </ScrollView>
+        <ScrollView Grid.Column="1">
+            <Label Text="{Binding Properties.Json}" />
+        </ScrollView>
+    </Grid>
+
+</ContentPage>
