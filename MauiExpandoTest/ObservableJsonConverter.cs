@@ -25,9 +25,9 @@ public class ObservableJsonConverter : IValueConverter
 	/// otherwise, <see langword="null"/>.</returns>
 	public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
-		if (value is ExpandoObject obj)
+		if (value is IDictionary<string, object?> dict)
 		{
-			return new ObservableJsonValue(obj);
+			return new ObservableJsonValue(dict);
 		}
 
 		return null;
