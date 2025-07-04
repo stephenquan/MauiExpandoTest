@@ -21,7 +21,7 @@ public partial class MainPage : ContentPage
 	/// Initializes a new instance of the <see cref="MainPage"/> class.
 	/// </summary>
 	/// <remarks>This constructor sets up the <see cref="MainPage"/> by initializing its properties and binding
-	/// context. It uses a JSON string to populate dynamic properties via an <see cref="ExpandoObjectHelper"/> helper.
+	/// context. It uses a JSON string to populate dynamic properties via an <see cref="DynamicHelper"/> helper.
 	/// Additionally, it configures data bindings for UI elements, such as the <see cref="CounterBtn"/> button.</remarks>
 	public MainPage()
 	{
@@ -43,26 +43,28 @@ public partial class MainPage : ContentPage
 		//Properties.Countries[2].Population = 26974026;
 
 		string json = """
-        {
-            "Count": 0,
-            "Hello": "Hello, World!",
-            "Welcome": "Welcome to \n.NET Multi-platform App UI",
-            "Nested": {
-                "Person": {
-                    "Name": "John Doe",
-                    "Age": 30,
-                    "IsEmployed": true
-                }
-            },
-            "Countries": [
-                { "Name": "USA", "Population": 347275807 },
-                { "Name": "France", "Population": 66650804 },
-                { "Name": "Australia", "Population": 26974026 }
-            ]
-        }
-        """;
+		{
+			"Count": 0,
+			"Hello": "Hello, World!",
+			"Welcome": "Welcome to \n.NET Multi-platform App UI",
+			"Nested": {
+				"Person": {
+				"Name": "John Doe",
+				"Age": 30,
+				"IsEmployed": true
+				}
+			},
+			"Countries": [
+				{ "Name": "USA", "Population": 347275807 },
+				{ "Name": "France", "Population": 66650804 },
+				{ "Name": "Australia", "Population": 26974026 }
+			],
+			"Primes": [2, 3, 5, 7, 11 ],
+			"RadioCode": [ "Hotel", "Echo", "Lima", "Lima", "Oscar" ]
+		}
+		""";
 
-		Properties = ExpandoObjectHelper.ConvertFromJson(json);
+		Properties = DynamicHelper.ConvertFromJson(json);
 
 		BindingContext = this;
 

@@ -48,7 +48,7 @@ public partial class ObservableJsonValue : INotifyPropertyChanged
 			rootNotify.PropertyChanged += (s, e) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Json)));
 		}
 
-		if (rootObject is IDictionary<string, object> rootDict)
+		if (rootObject is IDictionary<string, object?> rootDict)
 		{
 			Subscribe(rootDict);
 		}
@@ -64,7 +64,7 @@ public partial class ObservableJsonValue : INotifyPropertyChanged
 	/// ensures that property changes in deeply nested structures are captured.</remarks>
 	/// <param name="dict">A dictionary containing objects to monitor for property changes. The values in the dictionary can be  objects
 	/// implementing <see cref="INotifyPropertyChanged"/>, nested dictionaries, or lists of dynamic objects.</param>
-	void Subscribe(IDictionary<string, object> dict)
+	void Subscribe(IDictionary<string, object?> dict)
 	{
 		foreach (var kvp in dict)
 		{
@@ -72,7 +72,7 @@ public partial class ObservableJsonValue : INotifyPropertyChanged
 			{
 				innerNotify.PropertyChanged += (s, e) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Json)));
 			}
-			if (kvp.Value is IDictionary<string, object> innerDict)
+			if (kvp.Value is IDictionary<string, object?> innerDict)
 			{
 				Subscribe(innerDict);
 			}
@@ -84,7 +84,7 @@ public partial class ObservableJsonValue : INotifyPropertyChanged
 					{
 						itemNotify.PropertyChanged += (s, e) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Json)));
 					}
-					if (item is IDictionary<string, object> itemDict)
+					if (item is IDictionary<string, object?> itemDict)
 					{
 						Subscribe(itemDict);
 					}

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Dynamic;
+using System.Text.RegularExpressions;
 
 namespace MauiExpandoTest;
 
@@ -20,11 +21,11 @@ public partial class ObservableDictValue : INotifyPropertyChanged
 	public ExpandoObject RootObject { get; }
 
 	/// <summary>
-	/// Gets the underlying dynamic object that stores additional properties and values.
+	/// Gets the underlying dictionary used to store key-value pairs.
 	/// </summary>
-	/// <remarks>The <see cref="ExpandoObject"/> allows adding, removing, and modifying properties at runtime. This
-	/// property is read-only and provides access to the dynamic object for advanced scenarios.</remarks>
-	public ExpandoObject InnerObject { get; }
+	/// <remarks>This property provides access to the internal dictionary for retrieving stored data. Modifications
+	/// to the dictionary are not allowed directly through this property.</remarks>
+	public IDictionary<string, object?>? InnerDict { get; }
 
 	/// <summary>
 	/// Gets the relative path to the current object within the <see cref="ExpandoObject"/> hierarchy.
@@ -34,22 +35,21 @@ public partial class ObservableDictValue : INotifyPropertyChanged
 	/// <summary>
 	/// Gets or sets the value associated with the specified key in the underlying dictionary.
 	/// </summary>
-	/// <remarks>This indexer provides access to the values stored in the underlying dictionary represented by <see
-	/// cref="InnerObject"/>. If the underlying object is not a dictionary, the getter will return <see langword="null"/>
-	/// and the setter will perform no operation. Setting a value to <see langword="null"/> removes the key from the
-	/// dictionary if it exists. Changes to the dictionary trigger the <see cref="PropertyChanged"/> event with the key
-	/// formatted as "Item[key]".</remarks>
-	/// <param name="key">The key whose associated value is to be retrieved or modified. Cannot be <see langword="null"/>.</param>
+	/// <remarks>When retrieving a value, if the key does not exist or the dictionary is null, the getter returns
+	/// <see langword="null"/>. When setting a value, if the key is null or empty, the operation is ignored. If the value
+	/// is <see langword="null"/>, the key is removed from the dictionary. Changes to the dictionary trigger the <see
+	/// cref="PropertyChanged"/> event with the key as part of the event argument.</remarks>
+	/// <param name="key">The key whose associated value is to be retrieved or set. Cannot be <see langword="null"/> or empty.</param>
 	/// <returns></returns>
 	public object? this[string key]
 	{
 		get
 		{
-			if (InnerObject is not IDictionary<string, object> innerDict)
+			if (InnerDict is null || string.IsNullOrEmpty(key))
 			{
 				return null;
 			}
-			if (innerDict is not null && innerDict.TryGetValue(key, out object? value))
+			if (InnerDict.TryGetValue(key, out object? value))
 			{
 				return value;
 			}
@@ -57,30 +57,31 @@ public partial class ObservableDictValue : INotifyPropertyChanged
 		}
 		set
 		{
-			if (InnerObject is not IDictionary<string, object> innerDict)
+			if (InnerDict is null || string.IsNullOrEmpty(key))
 			{
 				return;
 			}
 			if (value is null)
 			{
-				if (innerDict.ContainsKey(key))
+				if (InnerDict.ContainsKey(key))
 				{
-					innerDict.Remove(key);
+					InnerDict.Remove(key);
 					PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"Item[{key}]"));
 				}
 				return;
 			}
-			if (innerDict.ContainsKey(key))
+			if (InnerDict.ContainsKey(key))
 			{
-				if (innerDict[key].Equals(value))
+				object? currentValue = InnerDict[key];
+				if (currentValue is not null && currentValue.Equals(value))
 				{
 					return; // No change, do not raise PropertyChanged
 				}
-				innerDict[key] = value;
+				InnerDict[key] = value;
 				PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"Item[{key}]"));
 				return;
 			}
-			innerDict.Add(key, value);
+			InnerDict.Add(key, value);
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"Item[{key}]"));
 		}
 	}
@@ -100,10 +101,15 @@ public partial class ObservableDictValue : INotifyPropertyChanged
 	public ObservableDictValue(ExpandoObject rootObject, string path)
 	{
 		RootObject = rootObject;
-		InnerObject = rootObject;
+		InnerDict = rootObject as IDictionary<string, object?>;
 		Path = path;
 
 		var keys = path.Split('.');
+
+		if (InnerDict is null)
+		{
+			return;
+		}
 
 		foreach (string key in path.Split("."))
 		{
@@ -111,15 +117,34 @@ public partial class ObservableDictValue : INotifyPropertyChanged
 			{
 				continue;
 			}
-			if (InnerObject is IDictionary<string, object> innerDict
-				&& innerDict.TryGetValue(key, out object? innerValue)
-				&& innerValue is ExpandoObject nestedObject)
+			Match match = Regex.Match(key, @"^(\w+)\[(\d+)\]$");
+			if (match.Success)
 			{
-				InnerObject = nestedObject;
+				string propertyName = match.Groups[1].Value; // Extract the property name before the index
+				int propertyIndex = int.Parse(match.Groups[2].Value); // Extract the index after the property name
+				if (InnerDict.TryGetValue(propertyName, out object? value)
+					&& value is IList<object?> list
+					&& propertyIndex < list.Count
+					&& list[propertyIndex] is IDictionary<string, object?> itemDict)
+				{
+					// If the value is a list, we can access the item at the specified index
+					InnerDict = itemDict;
+					continue;
+				}
+				return;
+			}
+			if (InnerDict.TryGetValue(key, out object? innerValue))
+			{
+				if (innerValue is IDictionary<string, object?> nestedObject)
+				{
+					InnerDict = nestedObject;
+					continue;
+				}
+				return;
 			}
 		}
 
-		if (InnerObject is INotifyPropertyChanged innerNotify)
+		if (InnerDict is INotifyPropertyChanged innerNotify)
 		{
 			innerNotify.PropertyChanged += (s, e) =>
 			{
