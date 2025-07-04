@@ -2,6 +2,8 @@
 
 namespace MauiExpandoTest;
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
 public class Program
 {
 	// This is the main entry point of the application.

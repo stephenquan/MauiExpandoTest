@@ -3,6 +3,8 @@
 
 namespace MauiExpandoTest.WinUI;
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
 /// <summary>
 /// Provides application-specific behavior to supplement the default Application class.
 /// </summary>
@@ -19,3 +21,4 @@ public partial class App : MauiWinUIApplication
 
 	protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
 }
+
