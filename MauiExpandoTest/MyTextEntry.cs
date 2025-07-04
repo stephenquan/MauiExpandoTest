@@ -25,6 +25,8 @@ public partial class MyTextEntry : Entry
 	/// properties. Changes to one property automatically update the other, ensuring consistency.</remarks>
 	public MyTextEntry()
 	{
+		this.ClearButtonVisibility = ClearButtonVisibility.WhileEditing;
+
 		PropertyChanged += (sender, e) =>
 		{
 			switch (e.PropertyName)

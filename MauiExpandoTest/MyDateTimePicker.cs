@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Maui.Markup;
+using SQuan.Helpers.Maui.Mvvm;
 
 namespace MauiExpandoTest;
 
@@ -15,34 +16,10 @@ namespace MauiExpandoTest;
 public partial class MyDateTimePicker : ContentView
 {
 	/// <summary>
-	/// The bindable property for the <see cref="Value"/> property.
-	/// </summary>
-	public static readonly BindableProperty ValueProperty = BindableProperty.Create(nameof(Value), typeof(DateTime?), typeof(MyDateTimePicker),
-		defaultValueCreator: (b) => ((MyDateTimePicker)b).OnCreateDefaultValue());
-
-
-	/// <summary>
 	/// Gets or sets the selected date and time value.
 	/// </summary>
-	//[BindableProperty, NotifyPropertyChangedFor(nameof(TimePart))]
+	[BindableProperty, NotifyPropertyChangedFor(nameof(TimePart))]
 	public partial DateTime? Value { get; set; } = null;
-
-
-	bool creatingDefaultValue = false;
-
-	public partial DateTime? Value
-	{
-		get => creatingDefaultValue ? field : (DateTime?)GetValue(ValueProperty);
-		set => SetValue(ValueProperty, field = value);
-	}
-
-	object? OnCreateDefaultValue()
-	{
-		creatingDefaultValue = true;
-		var result = Value;
-		creatingDefaultValue = false;
-		return result;
-	}
 
 	/// <summary>
 	/// Gets or sets the time component of the <see cref="Value"/> property.
@@ -68,6 +45,8 @@ public partial class MyDateTimePicker : ContentView
 		}
 	}
 
+	int changing = 0;
+
 	/// <summary>
 	/// Initializes a new instance of the <see cref="MyDateTimePicker"/> class.
 	/// </summary>
@@ -82,51 +61,89 @@ public partial class MyDateTimePicker : ContentView
 	{
 		var datePicker = new Microsoft.Maui.Controls.DatePicker()
 		{
-			Format = "D",
-			VerticalOptions = LayoutOptions.Center,
 		};
-
-		datePicker.SetBinding(
-			Microsoft.Maui.Controls.DatePicker.DateProperty,
-			static (MyDateTimePicker t) => t.Value,
-			BindingMode.TwoWay,
-			source: this);
 
 		var timePicker = new Microsoft.Maui.Controls.TimePicker()
 		{
-			Format = "t",
-			VerticalOptions = LayoutOptions.Center,
+			Margin = new Thickness(0, 0, 0, -13),
 		};
-
-		timePicker.SetBinding(
-			Microsoft.Maui.Controls.TimePicker.TimeProperty,
-			static (MyDateTimePicker t) => t.TimePart,
-			BindingMode.TwoWay,
-			source: this);
 
 		var clearButton = new Button()
 		{
-			Text = "X",
-			MinimumHeightRequest = 22,
-			MinimumWidthRequest = 22,
+			Text = "×",
+			FontSize = 20,
+			VerticalOptions = LayoutOptions.Center,
+			HorizontalOptions = LayoutOptions.Center,
 			Command = new Command(() =>
 			{
 				Value = (DateTime?)null;
 			}),
-		}.CenterVertical();
+		};
+
+		this.PropertyChanged += (s, e) =>
+		{
+			switch (e.PropertyName)
+			{
+				case nameof(Value):
+					if (changing == 0)
+					{
+						changing++;
+						if (Value is DateTime dateTime)
+						{
+							datePicker.Date = dateTime - dateTime.TimeOfDay;
+							timePicker.Time = dateTime.TimeOfDay;
+						}
+						else
+						{
+							datePicker.Date = DateTime.Today;
+							timePicker.Time = TimeSpan.Zero;
+						}
+						changing--;
+					}
+					break;
+			}
+		};
+
+		datePicker.DateSelected += (s, e) =>
+		{
+			if (changing == 0)
+			{
+				changing++;
+				if (Value is DateTime dateTime)
+				{
+					Value = datePicker.Date - datePicker.Date.TimeOfDay + dateTime.TimeOfDay;
+				}
+				else
+				{
+					Value = datePicker.Date - datePicker.Date.TimeOfDay + timePicker.Time;
+				}
+				changing--;
+			}
+		};
+
+		timePicker.TimeSelected += (s, e) =>
+		{
+			if (changing == 0)
+			{
+				changing++;
+				if (Value is DateTime dateTime)
+				{
+					Value = dateTime - dateTime.TimeOfDay + timePicker.Time;
+				}
+				else
+				{
+					datePicker.Date = DateTime.Today;
+					Value = DateTime.Today + timePicker.Time;
+				}
+				changing--;
+			}
+		};
 
 		clearButton.Bind(
-			Button.IsVisibleProperty,
+			Button.OpacityProperty,
 			static (MyDateTimePicker t) => t.Value,
 			source: this,
-			convert: (DateTime? value) => value is not null);
-
-		clearButton.SetBinding(
-			Button.IsVisibleProperty,
-			static (MyDateTimePicker t) => t.Value,
-			BindingMode.OneWay,
-			source: this,
-			converter: new CommunityToolkit.Maui.Converters.IsNotNullConverter());
+			convert: (DateTime? v) => v is null ? 0 : 1.0);
 
 		this.Content = new HorizontalStackLayout()
 		{
@@ -135,7 +152,7 @@ public partial class MyDateTimePicker : ContentView
 			{
 				datePicker,
 				timePicker,
-				clearButton,
+				clearButton
 			}
 		};
 	}

@@ -31,6 +31,9 @@ public partial class MyNumericEntry : Entry
 	/// the <see cref="Value"/> property is set to <see langword="null"/>.</remarks>
 	public MyNumericEntry()
 	{
+		this.ClearButtonVisibility = ClearButtonVisibility.WhileEditing;
+		this.Keyboard = Keyboard.Numeric;
+
 		PropertyChanged += (sender, e) =>
 		{
 			switch (e.PropertyName)
