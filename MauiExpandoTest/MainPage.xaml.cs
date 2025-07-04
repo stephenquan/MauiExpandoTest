@@ -34,7 +34,7 @@ public partial class MainPage : ContentPage
 		//Properties.Nested.Person.Name = "John Doe";
 		//Properties.Nested.Person.Age = 30;
 		//Properties.Nested.Person.IsEmployed = true;
-		//Properties.Countries = new List<ExpandoObject>() { new ExpandoObject(), new ExpandoObject(), new ExpandoObject() };
+		//Properties.Countries = new List<object?>() { new ExpandoObject(), new ExpandoObject(), new ExpandoObject() };
 		//Properties.Countries[0].Name = "USA";
 		//Properties.Countries[0].Population = 347275807;
 		//Properties.Countries[1].Name = "France";

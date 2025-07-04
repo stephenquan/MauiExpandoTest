@@ -8,47 +8,45 @@ namespace MauiExpandoTest;
 /// </summary>
 /// <remarks>This class wraps an <see cref="ExpandoObject"/> and provides a JSON representation of its contents.
 /// The JSON output is automatically updated whenever the underlying data structure changes, including nested objects
-/// and collections. Changes to properties or items within the <see cref="RootObject"/> trigger the <see
+/// and collections. Changes to properties or items within the <see cref="RootDict"/> trigger the <see
 /// cref="PropertyChanged"/> event for the <see cref="Json"/> property.</remarks>
 public partial class ObservableJsonValue : INotifyPropertyChanged
 {
 	/// <summary>
-	/// Gets or sets the root object that serves as a dynamic container for key-value pairs.
+	/// Gets the root dictionary containing key-value pairs for configuration or data storage.
 	/// </summary>
-	/// <remarks>The <see cref="ExpandoObject"/> allows for dynamic manipulation of its properties, making it
-	/// suitable for scenarios where the structure of the data is not fixed or known at compile time.</remarks>
-	public ExpandoObject RootObject { get; set; }
+	/// <remarks>This property is typically used to store or retrieve structured data in a flexible format. Keys
+	/// should be unique within the dictionary, and values can represent various types of data.</remarks>
+	public IDictionary<string, object?>? RootDict { get; }
 
 	/// <summary>
-	/// Gets the JSON representation of the <see cref="RootObject"/>.
+	/// Gets the JSON representation of the <see cref="RootDict"/>.
 	/// </summary>
-	public string Json => System.Text.Json.JsonSerializer.Serialize(RootObject, new System.Text.Json.JsonSerializerOptions
+	public string Json => System.Text.Json.JsonSerializer.Serialize(RootDict, new System.Text.Json.JsonSerializerOptions
 	{
 		WriteIndented = true,
 		PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
 	});
 
 	/// <summary>
-	/// Initializes a new instance of the <see cref="ObservableJsonValue"/> class,  which provides observable functionality
-	/// for changes to a JSON-like structure  represented by an <see cref="ExpandoObject"/>.
+	/// Initializes a new instance of the <see cref="ObservableJsonValue"/> class, which observes changes to a JSON-like
+	/// dictionary structure.
 	/// </summary>
-	/// <remarks>If the <paramref name="rootObject"/> implements <see cref="INotifyPropertyChanged"/>,  changes to
-	/// its properties will trigger the <see cref="PropertyChanged"/> event for the <see cref="Json"/> property. If the
-	/// <paramref name="rootObject"/> implements <see cref="IDictionary{TKey, TValue}"/>,  the instance subscribes to
-	/// changes in the dictionary to track updates.</remarks>
-	/// <param name="rootObject">The root <see cref="ExpandoObject"/> that serves as the source of the observable JSON structure. Must implement
-	/// <see cref="INotifyPropertyChanged"/> or <see cref="IDictionary{TKey, TValue}"/>  for change tracking to function
-	/// correctly.</param>
-	public ObservableJsonValue(ExpandoObject rootObject)
+	/// <remarks>This class is designed to monitor changes in a JSON-like dictionary structure and raise property
+	/// change notifications. If the provided dictionary implements <see cref="INotifyPropertyChanged"/>, the <see
+	/// cref="Json"/> property will automatically update when the dictionary changes.</remarks>
+	/// <param name="rootDict">The root dictionary to observe. If the dictionary implements <see cref="INotifyPropertyChanged"/>, changes to its
+	/// properties will trigger updates.</param>
+	public ObservableJsonValue(IDictionary<string, object?>? rootDict)
 	{
-		this.RootObject = rootObject;
+		this.RootDict = rootDict;
 
-		if (rootObject is INotifyPropertyChanged rootNotify)
+		if (rootDict is INotifyPropertyChanged rootNotify)
 		{
 			rootNotify.PropertyChanged += (s, e) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Json)));
 		}
 
-		if (rootObject is IDictionary<string, object?> rootDict)
+		if (rootDict is not null)
 		{
 			Subscribe(rootDict);
 		}
@@ -76,7 +74,7 @@ public partial class ObservableJsonValue : INotifyPropertyChanged
 			{
 				Subscribe(innerDict);
 			}
-			if (kvp.Value is IList<ExpandoObject> innerList)
+			if (kvp.Value is IList<object?> innerList)
 			{
 				foreach (var item in innerList)
 				{

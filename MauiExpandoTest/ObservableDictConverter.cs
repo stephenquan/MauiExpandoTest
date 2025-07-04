@@ -25,9 +25,9 @@ public class ObservableDictConverter : IValueConverter
 	/// otherwise, <see langword="null"/>.</returns>
 	public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
-		if (value is ExpandoObject obj)
+		if (value is IDictionary<string, object?> dict)
 		{
-			return new ObservableDictValue(obj, parameter is string key ? key : string.Empty);
+			return new ObservableDictValue(dict, parameter is string key ? key : string.Empty);
 		}
 
 		return null;

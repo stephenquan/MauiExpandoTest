@@ -14,17 +14,16 @@ namespace MauiExpandoTest;
 public partial class ObservableDictValue : INotifyPropertyChanged
 {
 	/// <summary>
-	/// Gets the root object that serves as a dynamic container for storing key-value pairs.
+	/// Gets the root dictionary containing key-value pairs where keys are strings and values are objects.
 	/// </summary>
-	/// <remarks>The <see cref="ExpandoObject"/> is particularly useful for scenarios where the structure of the 
-	/// data is not known at compile time. It can be used to store and manipulate dynamic data.</remarks>
-	public ExpandoObject RootObject { get; }
+	/// <remarks>This property provides access to the underlying data structure used for storing
+	/// application-specific information.</remarks>
+	public IDictionary<string, object?>? RootDict { get; }
 
 	/// <summary>
 	/// Gets the underlying dictionary used to store key-value pairs.
 	/// </summary>
-	/// <remarks>This property provides access to the internal dictionary for retrieving stored data. Modifications
-	/// to the dictionary are not allowed directly through this property.</remarks>
+	/// <remarks>This property provides access to the internal dictionary for retrieving stored data.</remarks>
 	public IDictionary<string, object?>? InnerDict { get; }
 
 	/// <summary>
@@ -87,35 +86,34 @@ public partial class ObservableDictValue : INotifyPropertyChanged
 	}
 
 	/// <summary>
-	/// Initializes a new instance of the <see cref="ObservableDictValue"/> class, which provides a mechanism to observe
-	/// changes to a nested property within an <see cref="ExpandoObject"/>.
+	/// Initializes a new instance of the <see cref="ObservableDictValue"/> class, navigating through a hierarchical
+	/// dictionary structure based on the specified path.
 	/// </summary>
-	/// <remarks>This constructor traverses the specified path within the <paramref name="rootObject"/> to locate
-	/// the target nested property. If the property is found and implements <see cref="INotifyPropertyChanged"/>, changes
-	/// to the property will trigger the <see cref="PropertyChanged"/> event.  The <paramref name="path"/> must be a valid
-	/// dot-separated string representing keys in the nested dictionary structure. Empty or invalid keys are ignored during
-	/// traversal.</remarks>
-	/// <param name="rootObject">The root <see cref="ExpandoObject"/> that contains the nested property to observe.</param>
-	/// <param name="path">The dot-separated path to the nested property within the <paramref name="rootObject"/>. Each segment of the path
-	/// represents a key in a nested dictionary structure.</param>
-	public ObservableDictValue(ExpandoObject rootObject, string path)
+	/// <remarks>This constructor navigates through the provided dictionary hierarchy using the specified path. If
+	/// the path includes array indexing (e.g., "key[index]"), it attempts to access the corresponding list and retrieve
+	/// the dictionary at the specified index.  If the path cannot be fully resolved, the traversal stops at the last valid
+	/// point. If the resolved dictionary implements <see cref="INotifyPropertyChanged"/>, changes to its properties will
+	/// trigger <see cref="PropertyChanged"/> events for this instance.</remarks>
+	/// <param name="rootDict">The root dictionary to start navigation from. Can be <see langword="null"/>.</param>
+	/// <param name="path">The dot-separated path used to traverse the dictionary hierarchy. Supports array indexing in the format
+	/// "key[index]".</param>
+	public ObservableDictValue(IDictionary<string, object?>? rootDict, string path)
 	{
-		RootObject = rootObject;
-		InnerDict = rootObject as IDictionary<string, object?>;
+		this.RootDict = rootDict;
+		this.InnerDict = rootDict;
 		Path = path;
 
 		var keys = path.Split('.');
-
-		if (InnerDict is null)
-		{
-			return;
-		}
 
 		foreach (string key in path.Split("."))
 		{
 			if (string.IsNullOrEmpty(key))
 			{
 				continue;
+			}
+			if (InnerDict is null)
+			{
+				return;
 			}
 			Match match = Regex.Match(key, @"^(\w+)\[(\d+)\]$");
 			if (match.Success)
