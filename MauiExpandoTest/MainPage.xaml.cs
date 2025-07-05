@@ -21,30 +21,13 @@ public partial class MainPage : ContentPage
 	/// Initializes a new instance of the <see cref="MainPage"/> class.
 	/// </summary>
 	/// <remarks>This constructor sets up the <see cref="MainPage"/> by initializing its properties and binding
-	/// context. It uses a JSON string to populate dynamic properties via an <see cref="DynamicHelper"/> helper.
+	/// context. It uses a JSON string to populate dynamic properties via an <see cref="DynamicPropertiesJsonHelper"/> helper.
 	/// Additionally, it configures data bindings for UI elements, such as the <see cref="CounterBtn"/> button.</remarks>
 	public MainPage()
 	{
-		//Properties = new ExpandoObject();
-		//Properties.Count = 0;
-		//Properties.Hello = "Hello, World!";
-		//Properties.Welcome = "Welcome to \n.NET Multi-platform App UI";
-		//Properties.Nested = new ExpandoObject();
-		//Properties.Nested.Person = new ExpandoObject();
-		//Properties.Nested.Person.Name = "John Doe";
-		//Properties.Nested.Person.Age = 30;
-		//Properties.Nested.Person.IsEmployed = true;
-		//Properties.Countries = new List<object?>() { new ExpandoObject(), new ExpandoObject(), new ExpandoObject() };
-		//Properties.Countries[0].Name = "USA";
-		//Properties.Countries[0].Population = 347275807;
-		//Properties.Countries[1].Name = "France";
-		//Properties.Countries[1].Population = 66650804;
-		//Properties.Countries[2].Name = "Australia";
-		//Properties.Countries[2].Population = 26974026;
-
 		string json = """
 		{
-			"Count": 0,
+			"ClickCount": 0,
 			"Hello": "Hello, World!",
 			"Welcome": "Welcome to \n.NET Multi-platform App UI",
 			"Nested": {
@@ -64,13 +47,13 @@ public partial class MainPage : ContentPage
 		}
 		""";
 
-		Properties = DynamicHelper.ConvertFromJson(json);
+		Properties = new DynamicProperties(json);
 
 		BindingContext = this;
 
 		InitializeComponent();
 
-		CounterBtn.SetBinding(Button.TextProperty, new Binding("[Count]", stringFormat: "Clicked {0} times!"));
+		CounterBtn.SetBinding(Button.TextProperty, new Binding("[ClickCount]", stringFormat: "Clicked {0} times!"));
 	}
 
 	/// <summary>
@@ -83,8 +66,7 @@ public partial class MainPage : ContentPage
 	/// <param name="e">The event data associated with the click event.</param>
 	void OnCounterClicked(object? sender, EventArgs e)
 	{
-		Properties.Count++;
-
+		Properties.ClickCount++;
 		Properties.Hello += "!";
 		Properties.Welcome += "!";
 		Properties.Nested.Person.Name += "!";

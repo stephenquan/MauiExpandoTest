@@ -7,16 +7,17 @@
     xmlns:dyna="clr-namespace:System.Dynamic;assembly=System.Linq.Expressions"
     xmlns:gen="clr-namespace:System.Collections.Generic;assembly=System.Core"
     xmlns:local="clr-namespace:MauiExpandoTest"
+    x:Name="mainPage"
     x:DataType="local:MainPage">
 
-    <Grid ColumnDefinitions="2*,*">
+    <Grid
+        x:DataType="local:DynamicProperties"
+        BindingContext="{Binding Properties}"
+        ColumnDefinitions="2*,*">
         <ScrollView>
             <VerticalStackLayout Padding="30,30,30,250" Spacing="25">
 
-                <VerticalStackLayout
-                    x:DataType="local:ObservableDictValue"
-                    BindingContext="{Binding Properties, Converter={local:ObservableDictConverter}}"
-                    Spacing="25">
+                <VerticalStackLayout Spacing="25">
 
                     <Image
                         Aspect="AspectFit"
@@ -45,39 +46,26 @@
                         Text="Click me" />
                 </VerticalStackLayout>
 
-                <VerticalStackLayout
-                    x:DataType="local:ObservableDictValue"
-                    BindingContext="{Binding Properties, Converter={local:ObservableDictConverter}, ConverterParameter='Nested.Person'}"
-                    Spacing="25">
+                <Grid x:DataType="local:DynamicProperties" BindingContext="{Binding [Nested]}">
+                    <Grid x:DataType="local:DynamicProperties" BindingContext="{Binding [Person]}">
+                        <VerticalStackLayout Spacing="25">
+                            <local:MyTextEntry Value="{Binding [Name], Mode=TwoWay}" />
+                            <local:MyNumericEntry Value="{Binding [Age], Mode=TwoWay}" />
+                            <CheckBox IsChecked="{Binding [IsEmployed], Mode=TwoWay}" />
+                            <local:MyDateTimePicker Value="{Binding [DateTime], Mode=TwoWay}" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </Grid>
 
-                    <local:MyTextEntry Value="{Binding [Name], Mode=TwoWay}" />
-
-                    <local:MyNumericEntry Value="{Binding [Age], Mode=TwoWay}" />
-
-                    <CheckBox IsChecked="{Binding [IsEmployed], Mode=TwoWay}" />
-
-                    <local:MyDateTimePicker Value="{Binding [DateTime], Mode=TwoWay}" />
-                </VerticalStackLayout>
-
-                <CollectionView
-                    x:DataType="local:ObservableDictValue"
-                    BindingContext="{Binding Properties, Converter={local:ObservableDictConverter}}"
-                    ItemsSource="{Binding [Countries]}">
+                <CollectionView ItemsSource="{Binding [Countries]}">
                     <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="dyna:ExpandoObject">
-                            <Grid>
-                                <Grid
-                                    Padding="5"
-                                    x:DataType="local:ObservableDictValue"
-                                    BindingContext="{Binding Converter={local:ObservableDictConverter}}">
-                                    <Border Padding="5">
-                                        <VerticalStackLayout Spacing="5">
-                                            <local:MyTextEntry Value="{Binding [Name], Mode=TwoWay}" />
-                                            <local:MyNumericEntry Value="{Binding [Population], Mode=TwoWay}" />
-                                        </VerticalStackLayout>
-                                    </Border>
-                                </Grid>
-                            </Grid>
+                        <DataTemplate x:DataType="local:DynamicProperties">
+                            <Border Padding="5">
+                                <VerticalStackLayout Spacing="5">
+                                    <local:MyTextEntry Value="{Binding [Name], Mode=TwoWay}" />
+                                    <local:MyNumericEntry Value="{Binding [Population], Mode=TwoWay}" />
+                                </VerticalStackLayout>
+                            </Border>
                         </DataTemplate>
                     </CollectionView.ItemTemplate>
                 </CollectionView>
@@ -88,7 +76,7 @@
 
         <Grid Grid.Column="1" Padding="10">
             <ScrollView>
-                <VerticalStackLayout x:DataType="local:ObservableJsonValue" BindingContext="{Binding Properties, Converter={local:ObservableJsonConverter}}">
+                <VerticalStackLayout>
                     <Label Text="{Binding Json}" />
                 </VerticalStackLayout>
             </ScrollView>

@@ -1,31 +1,49 @@
-﻿using System.Dynamic;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace MauiExpandoTest;
 
 /// <summary>
-/// Provides utility methods for working with JSON data and converting it into <see cref="ExpandoObject"/> instances.
+/// Provides utility methods for working with JSON data and converting it into <see cref="DynamicProperties"/> instances.
 /// </summary>
 /// <remarks>This class is designed to facilitate the conversion of JSON strings into dynamic objects represented
-/// by <see cref="ExpandoObject"/>. The resulting <see cref="ExpandoObject"/> can be used to dynamically access
+/// by <see cref="DynamicProperties"/>. The resulting <see cref="DynamicProperties"/> can be used to dynamically access
 /// properties and nested structures.</remarks>
-public static class DynamicHelper
+public static class DynamicPropertiesJsonHelper
 {
 	/// <summary>
-	/// Converts a JSON string into a dynamic object representation.
+	/// Populates the specified dictionary with key-value pairs extracted from the provided JSON string.
 	/// </summary>
-	/// <param name="json">The JSON string to be converted. Must represent a valid JSON object.</param>
-	/// <returns>A dynamic object containing the data from the JSON string. The returned object will be empty if the JSON string
-	/// does not represent a valid JSON object.</returns>
-	public static dynamic ConvertFromJson(string json)
+	/// <remarks>This method parses the JSON string and adds its key-value pairs to the specified dictionary. Only
+	/// JSON objects are supported; if the root element of the JSON is not an object, the dictionary remains
+	/// unchanged.</remarks>
+	/// <param name="dict">The dictionary to populate with data from the JSON object. Keys and values from the JSON will be added to this
+	/// dictionary.</param>
+	/// <param name="json">A JSON string representing an object. Must be a valid JSON object; otherwise, no data will be added to the
+	/// dictionary.</param>
+	public static void ConvertFromJson(IDictionary<string, object?> dict, string json)
 	{
-		ExpandoObject obj = new ExpandoObject();
 		JsonDocument? doc = JsonDocument.Parse(json);
+		if (doc is not null)
+		{
+			ConvertFromJsonDocument(dict, doc);
+		}
+	}
+
+	/// <summary>
+	/// Populates the specified dictionary with key-value pairs extracted from a JSON document.
+	/// </summary>
+	/// <remarks>This method processes the root element of the provided JSON document only if it is a JSON object.
+	/// If the root element is not a JSON object or if the document is <see langword="null"/>, the dictionary remains
+	/// unchanged.</remarks>
+	/// <param name="dict">The dictionary to populate with data. Keys are derived from the JSON object, and values are the corresponding JSON
+	/// values. Existing entries in the dictionary may be overwritten if the keys match.</param>
+	/// <param name="doc">The JSON document to extract data from. Must represent a JSON object at its root.</param>
+	public static void ConvertFromJsonDocument(IDictionary<string, object?> dict, JsonDocument doc)
+	{
 		if (doc is not null && doc.RootElement.ValueKind == JsonValueKind.Object)
 		{
-			ConvertFromJsonObject(obj, doc.RootElement);
+			ConvertFromJsonObject(dict, doc.RootElement);
 		}
-		return obj;
 	}
 
 	/// <summary>
@@ -59,7 +77,7 @@ public static class DynamicHelper
 					break;
 
 				case JsonValueKind.Object:
-					var nestedObj = new ExpandoObject();
+					var nestedObj = new DynamicProperties();
 					ConvertFromJsonObject(nestedObj, jsonProperty.Value);
 					dict[jsonProperty.Name] = nestedObj;
 					break;
@@ -97,7 +115,7 @@ public static class DynamicHelper
 					break;
 
 				case JsonValueKind.Object:
-					var newArrayItem = new ExpandoObject();
+					var newArrayItem = new DynamicProperties();
 					ConvertFromJsonObject(newArrayItem, jsonValue);
 					array.Add(newArrayItem);
 					break;
