@@ -27,7 +27,7 @@ public partial class MainPage : ContentPage
 	{
 		string json = """
 		{
-			"ClickCount": 0,
+			"Count": 0,
 			"Hello": "Hello, World!",
 			"Welcome": "Welcome to \n.NET Multi-platform App UI",
 			"Nested": {
@@ -53,7 +53,7 @@ public partial class MainPage : ContentPage
 
 		InitializeComponent();
 
-		CounterBtn.SetBinding(Button.TextProperty, new Binding("[ClickCount]", stringFormat: "Clicked {0} times!"));
+		CounterBtn.SetBinding(Button.TextProperty, new Binding("[Count]", stringFormat: "Clicked {0} times!"));
 	}
 
 	/// <summary>
@@ -66,7 +66,7 @@ public partial class MainPage : ContentPage
 	/// <param name="e">The event data associated with the click event.</param>
 	void OnCounterClicked(object? sender, EventArgs e)
 	{
-		Properties.ClickCount++;
+		Properties["Count"]++;
 		Properties.Hello += "!";
 		Properties.Welcome += "!";
 		Properties.Nested.Person.Name += "!";
